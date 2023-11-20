@@ -1,0 +1,19 @@
+# ZMQ Message Viewer
+
+This project implements a Dash web app that displays ZMQ messages going through a system.
+This is meant more as an example what could be done. This is the first time I have used dash.
+
+## Prerequisites
+
+Before running the ZMQ Message Viewer, make sure you have the following installed:
+
+- Python 3.x
+- Dash
+- PyZMQ
+
+Or just use the requirements.txt
+
+## Installation
+
+1. Clone the repository:
+

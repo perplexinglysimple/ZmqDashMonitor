@@ -1,0 +1,28 @@
+Title: George's Dash Exploration
+Description: A dashboard to explore the Dash framework
+Topbar:
+  Title: Cool Stuff
+  Links:
+    - text: Home
+      href: /
+    - text: Image Viewer
+      href: /image-viewer
+    - text: Graph View
+      href: /graph-view
+    - text: Server Table View
+      href: /server-table-view
+Sidebar:
+  Title: Dash
+  Links:
+    - text: Home
+      href: /
+      icon: fa-home
+    - text: Image Viewer
+      href: /image-viewer
+      icon: fa-image
+    - text: Graph View
+      href: /graph-view
+      icon: fa-chart-bar
+    - text: Server Table View
+      href: /server-table-view
+      icon: fa-table
