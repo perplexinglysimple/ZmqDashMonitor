@@ -121,6 +121,9 @@ class DashServer:
     def registerZmqVisCallbacks(self, zmqUUid: str):
         '''
             This function registers the callbacks for the zmq visualization pages.
+
+            TODO: Make the viewers stateful so that they can be updated with new data.
+                This can easily be done by putting them in a dictionary and updating the data in the dictionary.
         '''
         @self.app.callback(
             Output(f'zmq-data-{zmqUUid}', 'children'),
