@@ -2,7 +2,7 @@ import dash
 from dash import html, dcc
 from dash.dependencies import Output, State, Input
 
-from zmqUtils import ZmqSubscriber
+from src.zmqUtils import ZmqSubscriber
 
 from typing import Callable, List, Dict, ByteString, Tuple
 
@@ -64,7 +64,7 @@ class ServerTable():
             html.Td(f"{server_ip}:{port}", style={'width': '33%'}),
             html.Td(topic, style={'width': '33%'}),
             html.Td(dcc.Link(html.Img(src='/assets/loading.gif', id=id, style={'height': '40px'}), href=url), style={'width': '33%'}),
-        ], style={'width': '100%', 'border-bottom': '1px solid black', 'border-collapse': 'collapse', 'text-align': 'center'})
+        ], style={'width': '100%', 'borderBottom': '1px solid black', 'borderCollapse': 'collapse', 'textAlign': 'center'})
         return topic_row
 
     def server_table_layout(self, urls: List[Tuple[str, dict]]) -> html.Table:
@@ -74,7 +74,7 @@ class ServerTable():
                 html.Th("Server Name", style={'width': '33%'}),
                 html.Th("Topic", style={'width': '33%'}),
                 html.Th("Status", style={'width': '33%'})
-            ], style={'width': '100%', 'background': 'lightgray', 'font-weight': 'bold', 'border': '1px solid black', 'border-collapse': 'collapse', 'text-align': 'center'})
+            ], style={'width': '100%', 'background': 'lightgray', 'fontWeight': 'bold', 'border': '1px solid black', 'border-collapse': 'collapse', 'text-align': 'center'})
         ]
 
         server_names = set()
@@ -97,4 +97,4 @@ class ServerTable():
 
             server_table.append(self.addRowToTable(server_ip, server_port, server_topic, server_dataType, urls))
 
-        return html.Table(server_table, style={'width': '100%', 'border-collapse': 'collapse', 'border': '1px solid black', 'margin-top': '20px'})
+        return html.Table(server_table, style={'width': '100%', 'border-collapse': 'collapse', 'border': '1px solid black', 'marginTop': '20px'})

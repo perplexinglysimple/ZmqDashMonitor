@@ -16,11 +16,13 @@ def createServernamePortTopicListDict(config) -> List[Dict]:
         for port in ports:
             if config[name][port]['topics'] is None:
                 dataType = config[name][port]['DataType']
-                servernamePortTopicList.append({'name': name, 'port': port, 'topic': None, 'dataType': dataType, 'ip': ip})
+                updateRate = config[name][port].get('UpdateRate', 3)
+                servernamePortTopicList.append({'name': name, 'port': port, 'topic': None, 'dataType': dataType, 'ip': ip, 'UpdateRate': updateRate})
             else:
                 for topic in config[name][port]['topics']:
                     dataType = config[name][port]['topics'][topic]['DataType']
-                    servernamePortTopicList.append({'name': name, 'port': port, 'topic': topic, 'dataType': dataType, 'ip': ip})
+                    updateRate = config[name][port]['topics'][topic].get('UpdateRate', 3)
+                    servernamePortTopicList.append({'name': name, 'port': port, 'topic': topic, 'dataType': dataType, 'ip': ip, 'UpdateRate': updateRate})
     return tuple(servernamePortTopicList)
 
 def createHumanReadableNames(config) -> List[Tuple[str, dict]]:
@@ -30,14 +32,14 @@ def createHumanReadableNames(config) -> List[Tuple[str, dict]]:
         port = item.get('port')
         ip = item.get('ip')
         topic = item.get('topic')
+        updateRate = item.get('UpdateRate')
         if topic is None:
-            names.append((f"/{name}/{port}", {'ip': ip, 'port': port, 'topic': None}))
+            names.append((f"/{name}/{port}", {'ip': ip, 'port': port, 'topic': None, 'UpdateRate': updateRate}))
         else:
-            names.append((f"/{name}/{port}/{topic}", {'ip': ip, 'port': port, 'topic': topic}))
+            names.append((f"/{name}/{port}/{topic}", {'ip': ip, 'port': port, 'topic': topic, 'UpdateRate': updateRate}))
     return names
 
 def validateConfig(config):
-    print(config)
     return True
     # Check that the config is a dictionary
     if not isinstance(config, dict):

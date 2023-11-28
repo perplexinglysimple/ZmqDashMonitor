@@ -3,18 +3,20 @@ import time
 from collections import deque
 
 from dash import dcc, Input, html
-from zmqUtils import ZmqSubscriber
+from typing import List
+from src.zmqUtils import ZmqSubscriber
 
 
 class ZMQGraph:
     '''
         This class implements a graph that displays the data throughput of the zmq messages.
     '''
-    def __init__(self, zqmSubscriber: ZmqSubscriber, historyPoints: int = 100):
+    def __init__(self, zqmSubscriber: ZmqSubscriber, historyPoints: int = 100, filterIds: List[str] | None = None):
         self.zqmSubscriber = zqmSubscriber
         self.startTime = time.time()
         self.historyPoints = historyPoints
         self.history = deque(maxlen=self.historyPoints)
+        self.filterIds = filterIds
 
     def graph_layout(self, id: str) -> dcc.Graph:
         return html.Div([
@@ -27,7 +29,14 @@ class ZMQGraph:
 
     def update_graph(self, n: int, *args) -> dict:
         # Get the metrics from the zmq subscriber
-        metrics = self.zqmSubscriber.getMetrics()
+        try:
+            metrics = self.zqmSubscriber.getMetrics(self.filterIds)
+        except KeyError as e:
+            print(f'KeyError: {e}')
+            return dash.no_update
+        if len(metrics) == 0:
+            print('No metrics found')
+            return dash.no_update
         graph_data = []
 
         for uuid, metric in metrics.items():
@@ -45,11 +54,10 @@ class ZMQGraph:
 
         graph_layout = {
             'title': 'Data Throughput Metrics',
-            'xaxis': {'title': 'Time (s)', 'rangeslider': {'visible': True}},
+            'xaxis': {'title': 'Time (s)'},
             'yaxis': {'title': 'Rate (Hz) and KB', 'side': 'left'},
             'yaxis2': {'title': 'Payload Rate (KB/s)', 'side': 'right', 'overlaying': 'y'},
             'autosize': True,
-            
         }
 
         if not len(graph_data):

@@ -10,7 +10,7 @@ Topbar:
     - text: Graph View
       href: /graph-view
     - text: Server Table View
-      href: /server-table-view
+      href: /table-view
 Sidebar:
   Title: Dash
   Links:

@@ -14,7 +14,6 @@ class NavigationBars:
         self.setupNavigation()
 
     def setupNavigation(self):
-        print(self.navigationConfig)
         self.displayName = self.navigationConfig['Title']
         self.description = self.navigationConfig['Description']
         self.sideBarTitle = self.navigationConfig['Sidebar']['Title']

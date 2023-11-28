@@ -5,9 +5,11 @@ from typing import Callable, List, Dict, ByteString
 
 from collections import deque
 
-class ZmqSubscriber():
+class ZmqSubscriber(object):
     '''
-        This class implements a zmq subscriber that subscribes to a list of servers and topics.
+        Implements a zmq subscriber that subscribes to a list of servers and topics.
+
+        This class is a singleton.
     '''
     def __init__(self):
         self.zmqServerPortTopics = []
@@ -17,12 +19,22 @@ class ZmqSubscriber():
         self.threads = []
         self.metricsHistry = {}
         self.dataTypeDict = {}
+        self.metrics = {}
+        # Spawn a thread to calculate the average metrics
+        t = threading.Thread(target=self.__calculateAverageMetrics)
+        t.start()
 
-    def _recodMessage(self, uuid: str, message: ByteString):
+    def __new__(cls):
         '''
-            This function writes the message to a file.
+            This function implements the singleton pattern.
+        '''
+        if not hasattr(cls, 'instance'):
+            cls.instance = super(ZmqSubscriber, cls).__new__(cls)
+        return cls.instance
 
-            TODO: We should probably add a timestamp to thet datastream for playback purposes.
+    def _recordMessage(self, uuid: str, message: ByteString):
+        '''
+            TODO: I should probably add a timestamp to thet datastream for playback purposes.
         '''
         with open(f'{uuid}.txt', 'ab') as f:
             f.write(f'!Q{len(message)}'.encode())
@@ -55,12 +67,9 @@ class ZmqSubscriber():
             self.zmqMetrics[uuid]['payload_bytes'] += len(message)
             # If the uuid is being recorded, then write the message to a file
             if uuid in self.zmqRecordingUUIDs:
-                self._recodMessage(uuid, message)
+                self._recordMessage(uuid, message)
 
     def _crafteUUID(self, server_ip, port, topic):
-        '''
-            This function crafts a uuid from the server ip, port, and topic.
-        '''
         return f'{server_ip}-{port}-{topic}'
 
     def getStatus(self, uuid: str) -> str:
@@ -72,7 +81,6 @@ class ZmqSubscriber():
             TODO: We should probably add a timeout to the thread that is subscribing to the server and topic.
                 If the thread times out, then we should return disconnected.
         '''
-        print(f"uuid: {uuid}, self.zmqMostRecentData: {self.zmqMostRecentData.keys()} status: {uuid in self.zmqMostRecentData.keys()}")
         if uuid not in self.zmqMostRecentData.keys():
             return 'Unknown'
         elif time.time() - self.zmqMostRecentData[uuid]['time'] > 5:
@@ -141,50 +149,51 @@ class ZmqSubscriber():
             This function returns the most recent data for all uuids.
         '''
         return self.zmqMostRecentData
-    
-    def getAverageMetricsFromHistory(self, uuid):
-        '''
-            This function returns the average metrics from the history.
-            
-            TODO: This function is not used. Should we use it?
-        '''
-        #Average the metrics in the history
-        returnMessage = {'message_rate':0, 'payload_rate':0, 'time_delta':0}
-        for metric in self.metricsHistry[uuid]:
-            returnMessage['message_rate'] += metric['message_rate']
-            returnMessage['payload_rate'] += metric['payload_rate']
-            returnMessage['time_delta'] += metric['time_delta']
-        returnMessage['message_rate'] /= metric['time_delta']
-        returnMessage['payload_rate'] /= metric['time_delta']
-        return returnMessage
 
-    def getMetrics(self) -> Dict[str, Dict[str, int]]:
+    def getMetrics(self, filterIds: List[str] | None = None) -> Dict[str, Dict[str, int]]:
         '''
             This function returns the metrics for all uuids.
-
-            TODO: Spawn a thread to calculate the average metrics and return the most recent metrics here.
         '''
-        end_time = time.time()
+        if filterIds is None:
+            return self.metrics
         returnMessage = {}
-        for uuid, metrics in self.zmqMetrics.items():
-            # Calculate the playload rate in KB/s and the message rate in messages/s
-            # returnMessage[uuid] = {'message_rate':metrics['message_count'], 'payload_rate':metrics['payload_bytes']/1024}
-            # self.zmqMetrics[uuid] = {'message_count':0, 'start_time':time.time(), 'payload_bytes':0}
-            temp = {}
-            temp['message_rate'] = metrics['message_count']
-            # In KB/s
-            temp['payload_rate'] = metrics['payload_bytes'] / 1024
-            temp['time_delta'] = end_time - metrics['start_time']
-            # Reset the metrics
-            self.zmqMetrics[uuid] = {'message_count':0, 'start_time':time.time(), 'payload_bytes':0}
-            # Add the metrics to the history
-            self.metricsHistry[uuid].append(temp)
-            # Generate the resturn message using the history
-            returnMessage[uuid] = self.getAverageMetricsFromHistory(uuid)
+        for uuid in self.getUUIDs():
+            if uuid not in filterIds:
+                continue
+            returnMessage[uuid] = {
+                'message_rate': self.metrics[uuid]['message_rate'],
+                'payload_rate': self.metrics[uuid]['payload_rate'],
+                'time_delta': self.metrics[uuid]['time_delta'],
+                'previous_time': self.metrics[uuid]['previous_time'],
+            }
         return returnMessage
+    
+    def __calculateAverageMetrics(self):
+        '''
+            This function calculates the average metrics for all uuids.
+
+            This function is meant to be run in a thread and is not meant to be called directly.
+        '''
+        previous_time = time.time()
+        while True:
+            time.sleep(1)
+            time_delta = time.time() - previous_time
+            # Update the metrics for each uuid
+            for uuid in self.getUUIDs():
+                message_rate = self.zmqMetrics[uuid]['message_count'] / time_delta
+                payload_rate = self.zmqMetrics[uuid]['payload_bytes'] / 1024 / time_delta
+                self.metrics[uuid] = {
+                    'message_rate': message_rate,
+                    'payload_rate': payload_rate,
+                    'time_delta': time_delta,
+                    'previous_time': previous_time,
+                }
+                self.zmqMetrics[uuid]['message_count'] = 0
+                self.zmqMetrics[uuid]['payload_bytes'] = 0
+            previous_time = time.time()
     
     def startRecording(self, uuid: str) -> None:
         self.zmqRecordingUUIDs.append(uuid)
 
-    def stopRecording(self, uuid: str) -> None :
+    def stopRecording(self, uuid: str) -> None:
         self.zmqRecordingUUIDs.remove(uuid)

@@ -1,4 +1,4 @@
-# Here is an example of a config file
+# The same as the monitor config
 
 localhost:
   # This is subscribing to the port and getting all topics
@@ -25,4 +25,3 @@ CoolScreenName:
     topics:
       topic3:
         DataType: String
-

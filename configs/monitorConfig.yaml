@@ -1,0 +1,33 @@
+# Here is an example of a config file
+
+localhost:
+  # This is subscribing to the port and getting all topics
+  5555:
+    DataType: String
+    UpdateRate: 0.1
+    topics:
+  ip: localhost
+  
+CoolScreenName:
+  ip: localhost
+  # This is subscribing to the port and getting specific topics
+  5556:
+    # You can have multiple topics to subscribe to
+    topics:
+      topic1:
+        DataType: String
+        UpdateRate: 0.01
+      topicImage:
+        DataType: Image
+        UpdateRate: 1
+  5557:
+    topics:
+      topic2:
+        DataType: String
+        UpdateRate: 0.4
+  5558:
+    topics:
+      topic3:
+        DataType: String
+        UpdateRate: 0.5
+

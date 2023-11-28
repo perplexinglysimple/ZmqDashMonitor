@@ -1,0 +1,15 @@
+
+graphs:
+  - title: "Graph 1"
+    id: "graph1"
+    historyPoints: 100
+    filter_ids:
+      - "localhost-5556-topic1"
+      - "localhost-5555-None"
+    description: "This is a description of graph 1"
+  - title: "Graph 2"
+    id: "graph2"
+    historyPoints: 500
+    filter_ids:
+      - "localhost-5556-topic1"
+    description: "In this graph we only show the data from topic1 on port 5556"
